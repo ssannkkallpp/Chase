@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+    <widget xmlns = "http://www.w3.org/ns/widgets"
+            xmlns:gap = "http://phonegap.com/ns/1.0"
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            id = "com.chase.game"
+            versionCode = "10"
+            version = "1.0.0">
+    <name>Chase</name>
+    <description>
+    Version 1.0 of Chase the Game.
+    </description>
+
+    <config-file platform="android" parent="/manifest" mode="merge">
+    <supports-screens 
+        android:xlargeScreens="true" 
+        android:largeScreens="true" 
+        android:smallScreens="true" />
+    </config-file>
+    <author href="https://build.phonegap.com" email="ssannkkallpp@gmail.com">Anand and Sankalp</author>
+    <access origin="http://phonegap.com" subdomains="true" />
+    </widget>

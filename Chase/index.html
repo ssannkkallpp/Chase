@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <h1 style="text-align:center;color:white;"><b>CHASE</b></h1>
+    <script type="text/javascript" src="phonegap.js"></script>
+    <meta charset="UTF-8">
+    <title>Chase</title>
+</head>
+
+
+<body bgcolor="black">
+<div align = "center"><canvas id = "chase" width = 625px height = 625 style = "border:3px solid gray">
+    </canvas></div>
+
+    <div align = "center">
+        <h2 style="text-align:left;float:none;color:blue;" id = "score">Score: </h2>
+        <h2 style="text-align:right;float:none;color:blue;" id = "level">Level: </h2>
+        <hr style="clear:both;"/>
+    </div>
+    <script>
+        var canvas = document.getElementById("chase");
+        var ctx = canvas.getContext("2d");
+        var l = canvas.width;
+        var paths = [];
+        var circles = [];
+        var cx = 25, cy = 25;
+        var dx = l - 25, dy = l - 25;
+        var d = 25;
+        var level = 1;
+        var score = 0;
+
+        var blop = new Audio("https://78644184d132b199d9722829e133d500c40316fd-www.googledrive.com/host/0By_MrOOmvtC_blp0SF9tUENNOUE");
+        var level_up = new Audio("https://0305fb36f6d165e769442c2617935bb1db74d1a9-www.googledrive.com/host/0By_MrOOmvtC_SWswNmRRMnNhLWc");
+        var game_over = new Audio("https://e2b8f3a3b2bdfad342c39c8caa00a296a4b687b2-www.googledrive.com/host/0By_MrOOmvtC_YVgzQ2xsUFVUR1U");
+        var bgmusic = new Audio("https://3cec62ac5faddd9b17c75de8338ec89d7ff9d96c-www.googledrive.com/host/0By_MrOOmvtC_TmlUVDJON05vUm8");
+
+        function init() {
+            for (var i = 25; i <= l - 25; i += 25) {
+                paths.push([i, 25, i, l- 25]);
+                paths.push([25, i, l - 25, i]);
+            }
+            circles = [];
+            clear();
+            background();
+            bgmusic.play();
+            document.getElementById("level").innerHTML = "Level: " + level;
+            cx = 25; cy = 25;
+            dx = l - 25; dy = l - 25;
+        }
+
+        function background() {
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, l, l);
+            ctx.strokeStyle = "gray";
+            for (var i = 0; i < paths.length; i++) {
+                ctx.moveTo(paths[i][0], paths[i][1]);
+                ctx.lineTo(paths[i][2], paths[i][3]);
+            }
+            ctx.stroke();
+        }
+
+        function clear() {
+            ctx.clearRect(0, 0, l, l);
+            ctx.beginPath();
+        }
+
+        function drawCircle(x, y, color) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
+            ctx.strokeStyle = "black";
+            ctx.fillStyle = color;
+            ctx.stroke();
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function isOnTrack(x, y, dir) {
+            switch(dir) {
+                case "l": x -= d;
+                    break;
+                case "r": x += d;
+                    break;
+                case "u": y -= d;
+                    break;
+                case "d": y += d;
+                    break;
+            }
+
+            var onTrack = false;
+
+            for(var i = 0; i < paths.length; i++) {
+                if(onLine(x, y, paths[i][0], paths[i][1], paths[i][2], paths[i][3])) onTrack = true;
+            }
+
+            return onTrack;
+        }
+
+        function distance(x1, y1, x2, y2) {
+            return (Math.sqrt( Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)));
+        }
+
+        function onLine(a, b, x1, y1, x2, y2) {
+            return (distance(x1, y1, x2, y2) == distance(a, b, x2, y2) + distance(a, b, x1, y1));
+        }
+
+        function bestMove(x, y, a, b) {
+            var dx = x - a;
+            var dy = y - b;
+            var move;
+            if((Math.abs(dx) > Math.abs(dy) && dy != 0) || dx == 0) {
+                if(dy > 0) {
+                    move = "u";
+                }
+                else if(dy < 0) {
+                    move = "d";
+                }
+            }
+
+            if((Math.abs(dy) > Math.abs(dx) && dx != 0) || dy == 0) {
+                if(dx > 0) {
+                    move = "l";
+                }
+                else if(dx < 0) {
+                    move = "r";}
+            }
+
+            if(dx == dy) {
+                if(dx > 0) move = "l";
+                else if(dy > 0) move = "u";
+                else if(dx < 0) move = "r";
+                else if(dy < 0) move = "d";
+                else {
+                    if(dx == 0 && dy == 0) {
+                        clearInterval(chase);
+                        bgmusic.pause();
+                        alert("Caught!");
+                        game_over.play();
+                        window.location.reload();
+                    }
+                    else alert("Check code");
+                }
+            }
+
+            switch(move) {
+                case "u":
+                    y -= d;
+                    break;
+                case "d":
+                    y += d;
+                    break;
+                case "l":
+                    x -= d;
+                    break;
+                case "r":
+                    x += d;
+                    break;
+            }
+            return [x, y, move];
+        }
+
+        function moveRandom(x, y, prevDir) {
+            var u = isOnTrack(x, y, "u");
+            var d = isOnTrack(x, y, "d");
+            var l = isOnTrack(x, y, "l");
+            var r = isOnTrack(x, y, "r");
+
+            var moves = ["u", "d", "l", "r"];
+
+            if (u == false)  moves.splice(moves.indexOf("u"), 1);
+            if (d == false)  moves.splice(moves.indexOf("d"), 1);
+            if (l == false)  moves.splice(moves.indexOf("l"), 1);
+            if (r == false)  moves.splice(moves.indexOf("r"), 1);
+
+            moves.splice(moves.indexOf(revDir(prevDir)), 1);
+
+            var move = moves[Math.floor(Math.random() * moves.length)];
+
+            switch (move) {
+                case "u":
+                    y -= d;
+                    break;
+                case "d":
+                    y += d;
+                    break;
+                case "l":
+                    x -= d;
+                    break;
+                case "r":
+                    x += d;
+                    break;
+            }
+            return [x, y, move];
+        }
+        
+        function revDir(dir) {
+            switch(dir) {
+                case "u":
+                    return "d";
+                    break;
+                case "d":
+                    return "u";
+                    break;
+                case "l":
+                    return "r";
+                    break;
+                case "r":
+                    return "l";
+                    break;
+            }
+        }
+
+        function insideRect(x, y, x1, y1, x2, y2) {
+            return ((x >= x1 && x <= x2) && (y >= y1 && y <= y2));
+        }
+
+        function noDuplicates(array, elem) {
+            var no_dup = true;
+            for(var i = 0; i < array.length; i++) {
+                if(array[i][0] == elem[0] && array[i][1] == elem[1])
+                        no_dup = false;
+            }
+            return no_dup;
+        }
+
+        function getMousePos(evt) {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        canvas.addEventListener('mousemove', function(evt) {
+            drawCircle(dx, dy, "green");
+            var mousePos = getMousePos(evt);
+            var mx = mousePos.x;
+            var my = mousePos.y;
+
+            if(mx % 25 != 0) {
+                if(mx % 25 <= 12) mx -= mx % 25;
+                else mx += 25 - (mx % 25);
+
+            }
+            if (my % 25 != 0) {
+                if (my % 25 <= 12) my -= my % 25;
+                else my += 25 - (my % 25);
+            }
+
+            if ((mx >= 25 && mx <= l - 25) && (my >= 25 && my <= l - 25)) {
+                dx = mx;
+                dy = my;
+                drawCircle(dx, dy, "blue");
+                if(noDuplicates(circles, [dx, dy])) {
+                    circles.push([dx, dy]);
+                    blop.play();
+                    score += 4;
+                    document.getElementById("score").innerHTML = "Score: " + score;
+                }
+            }
+
+        }, false);
+
+        init();
+
+        var chase = setInterval(function() {
+            drawCircle(cx, cy, "green");
+            for(var i = 0; i < level; i++) {
+                var move = bestMove(cx, cy, dx, dy);
+                if(isOnTrack(cx, cy, move[2])) {
+                    cx = move[0];
+                    cy = move[1];
+                }
+            }
+
+            /*var dodger_move = moveRandom(dx, dy, dodgers[0][2]);
+            if(isOnTrack(dx, dy, dodger_move[2])) {
+                dx = dodger_move[0];
+                dy = dodger_move[1];
+                dodgers[0][2] = dodger_move[2];
+            }*/
+
+            ctx.fillStyle = "blue";
+            //ctx.fillRect(25, 25, cx - 25, cy - 25);
+            ctx.fillStyle = "green";
+            //ctx.fillRect(dx, dy, l - 25 - dx, l - 25 - dy);
+            drawCircle(cx, cy,"red");
+            if(noDuplicates(circles, [cx, cy])) {
+                circles.push([cx, cy]);
+                blop.play();
+                document.getElementById("score").innerHTML = "Score: " + score;
+            }
+            if(circles.length >= 575) {
+                alert("You won level " + level);
+                bgmusic.pause();
+                level++;
+                level_up.play();
+                init();
+            }
+            console.log(circles.length);
+        }, 80);
+
+    </script>
+</body>
+</html>
